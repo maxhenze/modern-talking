@@ -3,27 +3,50 @@
 \documentclass[11pt]{article}
 
 % Remove the "review" option to generate the final version.
-% \usepackage[review]{emnlp2021}
 \usepackage{emnlp2021}
 \usepackage{times}
+\usepackage{xspace}
 \usepackage{latexsym}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
-
-\title{Modern Talking: Key-Point Analysis using Modern Natural Language Processing}
-\author{%
-  Max Henze \and Hanh Luu \and Jan Heinrich Reimer \\
-  Martin Luther University Halle-Wittenberg, Germany \\ 
-  \texttt{\{max.henze,thi.luu,jan.reimer\}@student.uni-halle.de}%
-}
-
 \usepackage{graphicx}
+\usepackage{relsize}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{csquotes}
 \graphicspath{{figures/}}
-
-\newcommand{\Bert}{\textsc{Bert}\xspace}
-\newcommand{\ArgKP}{\mbox{ArgKP}\xspace}
+\newcommand{\ArgKP}{\mbox{ArgKP-2021}\xspace}
 \newcommand{\ArgQ}{\mbox{IBM-ArgQ-Rank-30kArgs}\xspace}
+\newcommand{\Bert}{\textsc{Bert}\xspace}
+\newcommand{\BertBase}{\Bert-Base\xspace}
+\newcommand{\BertLarge}{\Bert-Large\xspace}
+\newcommand{\Roberta}{\mbox{Ro\textsc{Bert}a}\xspace}
+\newcommand{\RobertaBase}{\Roberta-Base\xspace}
+\newcommand{\Albert}{\textsc{Albert}\xspace}
+
+% Draft editing helpers. Remove 
+%\newcommand{\todocite}{{\smaller\color{red}[CITE]}\xspace}
+%\newcommand{\todo}[1]{{\smaller\color{red}[#1]}}
+
+\title{%
+  Modern Talking in Key Point Analysis: \\
+  Key Point Matching using Pretrained Encoders%
+}
+\author{%
+  Jan Heinrich Reimer \and Thi Kim Hanh Luu \and Max Henze \and Yamen Ajjour \\
+  Martin Luther University Halle-Wittenberg, Germany \\ 
+  \texttt{\{%
+  \href{mailto:jan.reimer@student.uni-halle.de}{\textcolor{black}{jan.reimer}},%
+  \href{mailto:thi.luu@student.uni-halle.de}{\textcolor{black}{thi.luu}},%
+  \href{mailto:max.henze@student.uni-halle.de}{\textcolor{black}{max.henze}}%
+  \}@student.uni-halle.de} \\ 
+  \texttt{\href{mailto:yamen.ajjour@informatik.uni-halle.de}{\textcolor{black}{yamen.ajjour@informatik.uni-halle.de}}}%
+}
 
 \begin{document}
 
@@ -35,7 +58,11 @@
 
 \input{01-introduction.tex}
 \input{02-related-work.tex}
-\input{04-conclusion-future-work.tex}
+\input{03-data.tex}
+\input{04-approach.tex}
+\input{05-results.tex}
+\input{06-error-analysis.tex}
+\input{07-conclusion-future-work.tex}
 
 % Entries for the entire Anthology, followed by custom entries
 \bibliography{anthology,custom}
@@ -43,6 +70,6 @@
 
 \appendix
 
-\input{05-appendix.tex}
+\input{08-appendix.tex}
 
 \end{document}

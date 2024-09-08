@@ -1,0 +1,288 @@
+\documentclass[english,handout]{mlutalk}
+
+\title{Stance Classification for Key-Point Analysis}
+% \title{%
+%   Modern Talking: Key-Point Analysis \\
+%   using Modern Natural Language Processing
+% }
+\subtitle{Natural Language Processing, Summer Semester 2021}
+\author{Max Henze \and Hanh Luu \and Jan Heinrich Reimer}
+\institute{Martin Luther University Halle-Wittenberg}
+\date{April 20, 2021}
+\titlegraphic{\includegraphics[width=3cm]{figures/mlu-halle}}
+
+\addbibresource{../literature/literature.bib}
+
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{xspace}
+\usepackage{biblatex}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+\newcommand{\Bert}{\textsc{Bert}\xspace}
+\newcommand{\ArgKP}{\mbox{ArgKP}\xspace}
+\newcommand{\ArgQ}{\mbox{IBM-ArgQ-Rank-30kArgs}\xspace}
+\newcommand{\BiLSTM}{\mbox{BiLSTM}\xspace}
+\newcommand{\BertBase}{\textsc{Bert}-Base\xspace}
+\newcommand{\BertLarge}{\textsc{Bert}-Large\xspace}
+\newcommand{\TF}{\mbox{TF}\xspace}
+\newcommand{\TFIDF}{\mbox{TF/IDF}\xspace}
+
+\begin{document}
+
+\titleframe
+
+\begin{frame}{Stance Classification}
+
+  \begin{block}{Motivation}
+    Is an argument \(A\) pro, con or something else to a topic \(T\)?
+  \end{block}
+
+  \begin{example}
+    \footnotesize\centering\vspace*{1ex}
+    \begin{tabular}{llc}
+      \toprule
+      \(T\) & Nuclear energy & \\
+      \midrule
+      \(A_1\) & Nuclear energy is a cheap alternative to fossil fuels. & pro \\
+      \(A_2\) & Failures in nuclear power plants resolve in catastrophic events. & con \\
+      \(A_3\) & The CDU decided on a nuclear phase-out in 2021/22. & non-arg \\
+      \(A_4\) & I don't like nuclear energy because my mom also doesn't like it. & discuss \\
+      \bottomrule
+    \end{tabular}
+  \end{example}
+
+  \begin{block}{Problem}
+    \begin{itemize}
+      \item What makes an argument pro or con?
+      \item Can it always be decided?
+      \item Can an argument be classified pro by looking at other pro-like arguments?
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Stance Classification}
+  \framesubtitle{For Key Point Matching}
+  
+  \begin{itemize}
+    \item Key points have a stance like arguments
+    \item It's unlikely that key points and argument of different stance match
+    \item Key points generation / summarization benefits from stance information~\cite{SanchanAB2017}
+    \item Stance can be used to balance generated key points~\cite{ChowandaSSS2017}
+  \end{itemize}
+
+  \begin{example}
+    \footnotesize\centering\vspace*{1ex}
+    \begin{tabular}{llc}
+      \toprule
+      \(A_1\) & Nuclear energy is a cheap alternative to fossil fuels. & pro \\
+      \(K_1\) & Nuclear energy is cheap. & pro \\
+      \midrule
+      \(A_2\) & Failures in nuclear power plants resolve in catastrophic events. & con \\
+      \(K_2\) & Nuclear power plants pose a security risk. & con \\
+      \bottomrule
+    \end{tabular}
+  \end{example}
+
+\end{frame}
+
+\begin{frame}{Stance Classification}
+
+  \begin{block}{Framework}
+    \begin{equation*}
+      f: (D,T) \rightarrow S \in \mathbb{S}
+    \end{equation*}  
+    \begin{itemize}
+      \item Known stances~\(\mathbb{S}\) often includes pro and con, \\ can include task-specific stances
+      \item Document~\(D\) can be argument or key point (or any sentence)
+      \item Topic~\(T\) may be different in training/testing
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Machine Learning Pipeline}
+    \begin{enumerate}
+        \item Extract features from documents and topic
+        \item Build machine learning model for \(f\)
+        \item Train model
+        \item Test model
+      \end{enumerate}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Fake News Challenge Stance Detection~\cite{HanselowskiSSCC2018}}
+
+  \begin{block}{Challenge}
+    \begin{itemize}
+      \item Stance $S$\,: argee, disagree, discuss, or unrelated
+      \item Predict stance for a document's headline
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Contributions}
+    \begin{itemize}
+      \item Reproduction and analysis of the challenge's top-performing systems
+      \begin{itemize}
+        \item Tablos
+        \item Athene
+        \item UCL
+      \end{itemize}
+      \item What features/architectures improve performance most?
+      \item Evaluation metrics
+    \end{itemize}
+  \end{block}
+  
+  \framebreak
+
+  \begin{block}{Architectures and Features}
+    \footnotesize\centering\vspace*{1.5ex}
+    \begin{tabularx}{\linewidth}{lp{0.25\linewidth}X}
+      \toprule
+      & \textbf{Model} & \textbf{Features} \\
+      \midrule
+      \textbf{Talos} & weighted model~(CNN, GDB~tree) & Word2Vec, \TFIDF, sentiment \\
+      \textbf{Athene} & MLP (softmax, 6~hidden layers) & BoW, unigrams, similarity, topic models, latent semantic \\
+      \textbf{UCL} & MLP (1~hidden layer) & unigram term frequency, \TFIDF, similarity \\
+      \textbf{baseline} & gradient boosting & co-occurrence, refuting word count, polarity word count \\
+      \bottomrule
+    \end{tabularx}
+  \end{block}
+
+  \begin{block}{Helpful Features}
+    \begin{itemize}
+      \item Co-occurrence of words and \(n\)-grams
+      \item Bag of words, bag of character 3-grams
+      % \item Topic model features (negative matrix factorization)
+      \item Latent semantic indexing / latent Dirichlet allocation
+      \item GloVe embeddings
+    \end{itemize}
+  \end{block}
+    
+  \framebreak
+
+  \begin{block}{Difficulties}
+    \begin{itemize}
+      \item lexical overlap between headline and document
+      \item synonyms treated as unrelated
+      \item few lexical indicators for disagree stance
+      \item semantic relations / content understanding
+    \end{itemize}
+  \end{block}
+  
+  \begin{block}{Evaluation metrics}
+    \begin{itemize}
+      \item Hiearchical evaluation in the task
+      \begin{itemize}
+        % TODO Define labels or use descriptive names.
+        \item $\{ REL=\{AGR, DSG, DSG\}, UNR\}$: 0.25 points
+        \item $\{AGR, DSG, DSG\}$: 0.75 points
+        \item Imbalanced labels: UNR dominates
+      \end{itemize}
+      \item Suggested metric: macro-averaged $F_1$ score 
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{\Bert Same Side Stance Classification~\cite{OllingerDSBS2020}}
+  
+  \begin{block}{Problem: Same Side Stance Classification}
+    \begin{itemize}
+      \item Are both arguments pro or both con?
+      \item Simplification of general stance classification
+      \item Idea: use language model for semantics
+    \end{itemize}
+  \end{block}
+
+  \begin{example}
+    \footnotesize\centering\vspace*{1ex}
+    \begin{tabular}{llc}
+      \toprule
+      \(A_1\) & Nuclear energy is a cheap alternative to fossil fuels. & pro \\
+      \(A_2\) & Failures in nuclear power plants resolve in catastrophic events. & con \\
+      \(A_3\) & Nuclear waste is a burden on many future generations. & con \\
+      \bottomrule
+    \end{tabular}
+
+    \normalfont\raggedright\vspace*{1.5ex}
+    Arguments \(A_1\) and \(A_2\) have different stances, \(A_2\) and \(A_3\) have the same.
+  \end{example}
+  
+  \framebreak
+  
+  \begin{block}{Approach}
+    \begin{itemize}
+      \item \Bert architecture to infer semantic similarity
+      \item Fine-tune \BertBase and \BertLarge models for 3~epochs
+      \item Sequences limited to 512 tokens (position embedding length limit)
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Results}
+    \begin{itemize}
+      \item \Bert classifier outperforms SVM baseline
+      \item \BertLarge slightly better than \BertBase
+      \item Longer sequences (i.e., less truncated) do not perform much better %\\ (most sequences are short anyways)
+      \item Classifier with \Bert can learn from partially truncated sentences
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Cross-topic Argument Mining~\cite{StabMSRG2018}}
+
+  \begin{block}{Approach}
+    \begin{itemize}
+      \item \BiLSTM model
+      \item Integrate topic information
+      \begin{itemize}
+        \item Outer-attention \BiLSTM: input token weight using \BiLSTM given the topic
+        \item Custom contextual \BiLSTM: Add topic information as additional input terms
+      \end{itemize}
+      \item Leverage additional corpora
+      \begin{itemize}
+        \item Transfer learning: train model twice, with auxiliary corpus first
+        \item Multi-task learning: use RNN for separate learning, combine afterwards
+      \end{itemize}
+    \end{itemize}
+  \end{block}
+
+  \framebreak
+
+  \begin{block}{Contributions}
+    \begin{itemize}
+      \item New corpus: 27\,520~sentences for 8~controversial topics
+      \item Heterogeneous document collection
+      \item Stances: supporting~(pro), opposing~(con), non-argument
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Results}
+    \begin{itemize}
+      \item Better generalization to unknown topics with contextual \BiLSTM
+      \item Multi-task learning setup improves performance
+      % Topic information during training improves prediction?
+      % Problems?
+    \end{itemize}
+  \end{block}
+  
+\end{frame}
+
+\begin{frame}{Comparison}
+  \begin{itemize}
+    \item What stances to consider in key point matching?
+    \item Fake News Challenge can give hints on feature selection
+    \item Same side stance classification is necessary condition to key point matching
+    \item Simpler architectures work reasonably well
+    \item Pretrain classifier on additional datasets
+  \end{itemize}
+  \thankyou
+\end{frame}
+
+\appendix
+\section{\appendixname}
+
+\bibliographyframe
+
+\end{document}

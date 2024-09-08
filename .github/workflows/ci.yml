@@ -4,53 +4,126 @@ on:
   push:
 
 jobs:
-  build-latex:
-    name: "🏗️ LaTeX build"
-    runs-on: ubuntu-20.04
+  build-latex-paper:
+    name: "🏗️ Build LaTeX paper"
+    runs-on: ubuntu-latest
     steps:
       - name: "📥 Check-out"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: "🏗️ Compile paper"
-        uses: xu-cheng/latex-action@v2
+        uses: xu-cheng/latex-action@v3
         with:
           working_directory: paper
           root_file: emnlp2021.tex
-      - name: "📤 Upload paper"
-        uses: actions/upload-artifact@v2
-        with:
-          path: paper/emnlp2021.pdf
           name: Paper
-  test-python:
-    name: "🧪 Python test"
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        shell: bash -l {0}
+  build-latex-talk:
+    name: "🏗️ Build LaTeX talk"
+    runs-on: ubuntu-latest
     steps:
       - name: "📥 Check-out"
-        uses: actions/checkout@v2
-      - name: "💾 Cache Conda"
-        uses: actions/cache@v2
+        uses: actions/checkout@v4
+      - name: "🏗️ Compile talk"
+        uses: xu-cheng/latex-action@v3
         with:
-          path: ~/conda_pkgs_dir
-          key:
-            ${{ runner.os }}-conda-${{hashFiles('environment.yml') }}
-      - name: "🧰 Install Conda"
-        uses: conda-incubator/setup-miniconda@v2
+          working_directory: talk
+          root_file: talk.tex
+  build-latex-short-talk:
+    name: "🏗️ Build LaTeX short talk"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Check-out"
+        uses: actions/checkout@v4
+      - name: "🏗️ Compile short talk"
+        uses: xu-cheng/latex-action@v3
         with:
-          activate-environment: modern-talking
-          environment-file: environment.yml
-          auto-activate-base: false
-      - name: "🧪 Run tests"
-        run: pytest --cov --cov-report=term --cov-report=xml || true
-      - name: "📤 Upload test coverage"
-        uses: actions/upload-artifact@v2
-        with:
-          path: coverage.xml
-          name: Python test coverage
-      - name: "📤 Publish test coverage"
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
-        
- 
+          working_directory: talk
+          root_file: short-talk.tex
+  python-build:
+    name: "🏗️ Build Python wheels"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "📥 Check-out"
+      uses: actions/checkout@v4
+    - name: "🧰 Install Python"
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: "🧰 Install dependencies"
+      run: pip install build twine
+    - name: "🏗️ Build Python wheels"
+      run: python -m build
+    - name: "🧪 Check package bundles"
+      run: twine check dist/*
+  python-code-format:
+    name: "🔍 Check Python code format"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "📥 Check-out"
+      uses: actions/checkout@v4
+    - name: "🧰 Install Python"
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: "🧰 Install dependencies"
+      run: pip install .[tests]
+    - name: "🔍 Check Python code format"
+      run: flake8 --exclude modern_talking/evaluation/track_1_kp_matching.py modern_talking
+  python-lint:
+    name: "🔍 Lint Python code"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "📥 Check-out"
+      uses: actions/checkout@v4
+    - name: "🧰 Install Python"
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: "🧰 Install dependencies"
+      run: pip install .[tests]
+    - name: "🔍 Lint Python code"
+      run: pylint -E modern_talking
+  python-test:
+    name: "🧪 Test Python code"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "📥 Check-out"
+      uses: actions/checkout@v4
+    - name: "🧰 Install Protoc"
+      run: sudo apt install protobuf-compiler
+    - name: "🧰 Install Python"
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: "🧰 Install dependencies"
+      run: pip install .[tests]
+    - name: "🧪 Test Python code"
+      run: pytest --cov --cov-report=term --cov-report=xml
+    - name: "📤 Upload coverage to Codecov"
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+  docker-build:
+    name: "🏗️ Build Docker image"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "📥 Check-out"
+      uses: actions/checkout@v4
+    - name: "🧰 Set up QEMU"
+      uses: docker/setup-qemu-action@v3
+    - name: "🧰 Set up Docker Buildx"
+      uses: docker/setup-buildx-action@v3
+    - name: "🏗️ Build Docker image"
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: false
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

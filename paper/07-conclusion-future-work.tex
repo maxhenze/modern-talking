@@ -1,0 +1,17 @@
+\section{Conclusion and Future Work}\label{conclusion}
+
+We approach the practical problem of matching arguments with short key points with the goal of summarizing arguments.
+Although our token overlap baseline approach is very simple, it achieves a mean average precision of up to~0.575 on 
+the test set, nearly double the score of a random matcher. 
+The baseline approach is straightforward to implement but can not eliminate the problem of context understanding. 
+\RobertaBase and \BertBase have achieved good performance, because they can overcome the context understanding challenge. 
+Our fine-tuned \RobertaBase model also performed better than \BertBase in this task and scores a mean average 
+precision of up to~0.967.
+With strict ground truth labels it achieves a mean average precision score of~0.913 on the test set, which is the best 
+score of the participating teams in the shared task.
+This again shows the importance of architecture, training objectives, and hyperparameter selection.
+
+\subsection{Future Work}
+
+In Section~\ref{error-examples}, we observed that transformer models tend to misclassify argument key point pairs if the argument and key point largely differ in length. As an extension to our approach, we propose to combine transformer models with the overlap baseline in an ensemble. Another possible improvement are recent improvements in language models~\cite{Sun2021WFDPSLCZLLWGLSSLOYTWW}.
+If a language model is even more robust than, for example, \Roberta, we expect a fine-tuned matcher to outperform the \RobertaBase matcher as well.
